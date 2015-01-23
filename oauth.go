@@ -424,7 +424,7 @@ func (c *Consumer) makeAccessTokenRequest(params map[string]string, secret strin
 //
 //      - err:
 //        Set only if there was an error, nil otherwise.
-func (c *Consumer) Get(url string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
+func (c *Consumer) Get(url string, body string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
 	return c.makeAuthorizedRequest("GET", url, LOC_URL, "", userParams, token)
 }
 
@@ -438,14 +438,14 @@ func encodeUserParams(userParams map[string]string) string {
 
 // DEPRECATED: Use Post() instead.
 func (c *Consumer) PostForm(url string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
-	return c.Post(url, userParams, token)
+	return c.Post(url, "", userParams, token)
 }
 
-func (c *Consumer) Post(url string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
-	return c.makeAuthorizedRequest("POST", url, LOC_BODY, "", userParams, token)
+func (c *Consumer) Post(url string, body string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
+	return c.makeAuthorizedRequest("POST", url, LOC_BODY, body, userParams, token)
 }
 
-func (c *Consumer) Delete(url string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
+func (c *Consumer) Delete(url string, body string, userParams map[string]string, token *AccessToken) (resp *http.Response, err error) {
 	return c.makeAuthorizedRequest("DELETE", url, LOC_URL, "", userParams, token)
 }
 
@@ -518,9 +518,10 @@ func (c *Consumer) makeAuthorizedRequest(method string, url string, dataLocation
 	authParams.Add(SIGNATURE_PARAM, signature)
 
 	contentType := ""
-	if dataLocation == LOC_BODY {
-		contentType = "application/x-www-form-urlencoded"
-	}
+	//if dataLocation == LOC_BODY {
+	//	contentType = "application/x-www-form-urlencoded"
+	//}
+	contentType = "application/json"
 	return c.httpExecute(method, url+queryParams, contentType, body, authParams)
 }
 
@@ -822,6 +823,7 @@ func (c *Consumer) httpExecute(
 	}
 
 	req.Header.Set("Content-Length", strconv.Itoa(len(body)))
+	req.Header.Set("Accept", contentType)
 
 	if c.debug {
 		fmt.Printf("Request: %v\n", req)
